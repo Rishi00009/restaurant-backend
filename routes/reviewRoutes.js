@@ -1,14 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { createReview, getReviews, updateReview } = require('../controllers/reviewController');
+const { createReview, getReviews } = require('../controllers/reviewController');
+const authMiddleware = require('../middleware/authMiddleware');
 
-// Route for creating a new review
-router.post('/', createReview);
+// Route for creating a review (with auth middleware)
+router.post('/:menuItemId', authMiddleware, createReview);
 
-// Route for getting all reviews for a specific restaurant
-router.get('/:restaurantId', getReviews);
-
-// Route for updating an existing review
-router.put('/:reviewId', updateReview);
+// Route for fetching reviews for a specific menu item
+router.get('/:menuItemId', getReviews);
 
 module.exports = router;

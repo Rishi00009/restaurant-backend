@@ -1,17 +1,19 @@
-// routes/restaurantRoutes.js
 const express = require('express');
 const router = express.Router();
-const { getRestaurants, getRestaurantById, createRestaurant } = require('../controllers/restaurantController');
-const authMiddleware = require('../middleware/authMiddleware');
-const roleMiddleware = require('../middleware/roleMiddleware');
+const {
+  getRestaurants,
+  getRestaurantById,
+  createRestaurant,
+  updateRestaurantProfile,
+  upload,
+  uploadImage,  // New image upload route
+} = require('../controllers/restaurantController');
 
-// Get All Restaurants
-router.get('/', getRestaurants);
-
-// Get Restaurant by ID
-router.get('/:id', getRestaurantById);
-
-// Create Restaurant (only accessible by restaurant owners)
-router.post('/', authMiddleware, roleMiddleware(['restaurantOwner']), createRestaurant);
+// Routes
+router.get('/', getRestaurants); // Get all restaurants
+router.get('/:id', getRestaurantById); // Get a restaurant by ID
+router.post('/', upload.single('image'), createRestaurant); // Create a new restaurant with an image
+router.put('/:id', updateRestaurantProfile); // Update an existing restaurant profile (image URL is passed instead)
+router.post('/uploadImage', upload.single('image'), uploadImage); // New route for uploading an image and returning the URL
 
 module.exports = router;

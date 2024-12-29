@@ -22,25 +22,44 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/auth', authRoutes);
 
-
-
-// Error Handling Middleware
+// Error Handling Middleware (with better error handling)
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).send('Something went wrong!');
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Something went wrong!';
+  res.status(statusCode).json({
+    message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : null,
+  });
 });
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.log('MongoDB connection error:', err));
+  .then(() => {
+    console.log('MongoDB connected');
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+  });
 
-// Start server
+// Mongoose Connection Event Listeners for better debugging
+mongoose.connection.on('connected', () => {
+  console.log('Mongoose connected to DB');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.log('Mongoose connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('Mongoose disconnected');
+});
+
+// Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-const Restaurant = require('./models/restaurant');
 
-
+// Unused Restaurant Model - Remove this if not in use
+// const Restaurant = require('./models/restaurant');
