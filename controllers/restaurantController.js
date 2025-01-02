@@ -78,11 +78,11 @@ const getRestaurantById = async (req, res) => {
 
 // Create Restaurant
 const createRestaurant = async (req, res) => {
-  const { name, location, cuisine, hours, description } = req.body;
+  const { name, location, cuisine, hours, description, price } = req.body;
 
   try {
     // Validate required fields
-    if (!name || !location || !cuisine || !hours || !description) {
+    if (!name || !location || !cuisine || !hours || !description || !price) {
       return res.status(400).json({ message: 'All fields are required.' });
     }
 
@@ -98,6 +98,7 @@ const createRestaurant = async (req, res) => {
       cuisine,
       hours,
       description,
+      price,
       image: req.file ? `/uploads/${req.file.filename}` : null, // Only set image if file exists
     });
 
@@ -114,7 +115,7 @@ const createRestaurant = async (req, res) => {
 // Update Restaurant Profile
 const updateRestaurantProfile = async (req, res) => {
   const { id } = req.params;
-  const { description, location, cuisine, hours, imageUrl } = req.body;
+  const { description, location, cuisine, hours, price, imageUrl } = req.body;
 
   try {
     const restaurant = await Restaurant.findById(id);
@@ -141,6 +142,7 @@ const updateRestaurantProfile = async (req, res) => {
     if (location) restaurant.location = location;
     if (cuisine) restaurant.cuisine = cuisine;
     if (hours) restaurant.hours = hours;
+    if (price) restaurant.price = price;
 
     await restaurant.save();
 

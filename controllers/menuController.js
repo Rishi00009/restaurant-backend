@@ -35,19 +35,21 @@ exports.createMenuItem = async (req, res) => {
 
   try {
     if (!restaurantId || !isValidObjectId(restaurantId)) {
-      console.error('Invalid restaurantId:', restaurantId);
       return res.status(400).json({ message: 'Invalid or missing restaurant ID.' });
+    }
+
+    // Validate fields
+    if (!name || !description || !price || !category || !image) {
+      return res.status(400).json({ message: 'Please provide all necessary fields: name, description, price, category, image.' });
     }
 
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) {
-      console.error('Restaurant not found:', restaurantId);
       return res.status(404).json({ message: 'Restaurant not found.' });
     }
 
-    const user = await User.findById(req.user.userId); // Assuming authMiddleware adds user ID
-    if (user.role !== 'restaurantOwner' || user.restaurantName !== restaurant.name) {
-      console.error('User is not the restaurant owner:', user.role, user.restaurantName);
+    const user = await User.findById(req.user.userId);
+    if (user.role !== 'restaurantOwner' || !user.restaurantId.equals(restaurant._id)) {
       return res.status(403).json({ message: 'You are not authorized to add menu items for this restaurant.' });
     }
 
@@ -63,21 +65,17 @@ exports.createMenuItem = async (req, res) => {
       tags
     });
 
-    console.log('Creating new menu item:', newMenuItem);
-
     await newMenuItem.save();
 
     restaurant.menu.push(newMenuItem._id);
     await restaurant.save();
 
-    console.log('Menu item created successfully:', newMenuItem);
     res.status(201).json({ message: 'Menu item created successfully.', menuItem: newMenuItem });
   } catch (error) {
     console.error('Error creating menu item:', error.message);
     res.status(500).json({ message: 'Error creating menu item', error: error.message });
   }
 };
-
 
 // Add a review for a menu item
 exports.addReview = async (req, res) => {
@@ -92,6 +90,10 @@ exports.addReview = async (req, res) => {
     const menuItem = await MenuItem.findById(menuItemId);
     if (!menuItem) {
       return res.status(404).json({ message: 'Menu item not found.' });
+    }
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: 'Rating must be between 1 and 5.' });
     }
 
     const review = new Review({
@@ -152,20 +154,19 @@ exports.updateMenuItem = async (req, res) => {
 
     const restaurant = await Restaurant.findById(menuItem.restaurantId);
     const user = await User.findById(req.user.userId); // Assuming user is added by authMiddleware
-    if (user.role !== 'restaurantOwner' || user.restaurantName !== restaurant.name) {
+    if (user.role !== 'restaurantOwner' || !user.restaurantId.equals(restaurant._id)) {
       return res.status(403).json({ message: 'You are not authorized to update this menu item.' });
     }
 
-    Object.assign(menuItem, {
-      name: name || menuItem.name,
-      description: description || menuItem.description,
-      price: price || menuItem.price,
-      image: image || menuItem.image,
-      ingredients: ingredients || menuItem.ingredients,
-      calories: calories || menuItem.calories,
-      category: category || menuItem.category,
-      tags: tags || menuItem.tags,
-    });
+    // Update fields if provided
+    menuItem.name = name || menuItem.name;
+    menuItem.description = description || menuItem.description;
+    menuItem.price = price || menuItem.price;
+    menuItem.image = image || menuItem.image;
+    menuItem.ingredients = ingredients || menuItem.ingredients;
+    menuItem.calories = calories || menuItem.calories;
+    menuItem.category = category || menuItem.category;
+    menuItem.tags = tags || menuItem.tags;
 
     await menuItem.save();
 

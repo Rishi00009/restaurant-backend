@@ -14,10 +14,12 @@ const io = socketIo(server, {
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'https://restaurant-rishi.netlify.app', // Your Netlify frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json());
-
-
 
 // WebSocket Connection
 io.on('connection', (socket) => {

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const menuController = require('../controllers/menuController');
-const authMiddleware = require('../middleware/authMiddleware'); // Assuming authMiddleware exists
+const authMiddleware = require('../middleware/authMiddleware');
 
 // Get all menu items for a specific restaurant
 router.get('/:restaurantId', menuController.getMenuItems);
